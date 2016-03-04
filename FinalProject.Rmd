@@ -75,7 +75,7 @@ set.seed(1234)
 cv <- trainControl(method="cv", number=3)
 modFitRf <- train(classe~.,data=training, method="rf", trControl=cv, verbose=F)
 prediction_rf <- predict(modFitRf,newdata=testing)
-confusionMatrix(predictions,testing$classe)
+confusionMatrix(prediction_rf,testing$classe)
 ```
 
 From the confusion matrix, we can see that the model produces very accurate predictions for the class of dumbbell exercise.  Below is code using linear discriminant analyis.  Notice that this model does not produce nearly as accurate results as the random forest model produced earlier.

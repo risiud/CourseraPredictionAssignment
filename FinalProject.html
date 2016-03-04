@@ -123,15 +123,59 @@ sum(complete.cases(training)) - length(training$roll_belt) #no</code></pre>
 <h2>Running the Model</h2>
 <p>Several models were considered and run for this analysis including linear discriminant analysis (lda), Recursive Partitioning and Regression Trees (rpart), boosting (nba), and generalized linear models (glm), and random forests (rf). After building the model, each used to predict the class on the test data produced in data preprocessing. In the end, a random forest (rf) alorithm proved to be the most effective with a prediction accuracy on the test set of 99 percent. This is a much better than the other methods used which provided from as low 40 percent to 70 percent accuracies. The code below shows how the model was produced and the accuracy output. In an attempt to tune the amount of bias in the model and improve accuracy, k-fold cross-validation with a k of 3 was used. Although this increases the prediction power of our model, it is very computationally intensive to create. On a PC with an Intel I3 processor, each of these models took several minutes to compute.</p>
 <pre class="r"><code>set.seed(1234)
-#cv &lt;- trainControl(method=&quot;cv&quot;, number=3)
-#modFitRf &lt;- train(classe~.,data=training, method=&quot;rf&quot;, trControl=cv, verbose=F)
-#prediction_rf &lt;- predict(modFitRf,newdata=testing)
-#confusionMatrix(predictions,testing$classe)</code></pre>
+cv &lt;- trainControl(method=&quot;cv&quot;, number=3)
+modFitRf &lt;- train(classe~.,data=training, method=&quot;rf&quot;, trControl=cv, verbose=F)</code></pre>
+<pre><code>## Loading required package: randomForest</code></pre>
+<pre><code>## randomForest 4.6-12</code></pre>
+<pre><code>## Type rfNews() to see new features/changes/bug fixes.</code></pre>
+<pre><code>## 
+## Attaching package: 'randomForest'</code></pre>
+<pre><code>## The following object is masked from 'package:ggplot2':
+## 
+##     margin</code></pre>
+<pre class="r"><code>prediction_rf &lt;- predict(modFitRf,newdata=testing)
+confusionMatrix(prediction_rf,testing$classe)</code></pre>
+<pre><code>## Confusion Matrix and Statistics
+## 
+##           Reference
+## Prediction    A    B    C    D    E
+##          A 1670    6    0    0    0
+##          B    3 1127   12    0    0
+##          C    0    6 1014   12    0
+##          D    0    0    0  951    4
+##          E    1    0    0    1 1078
+## 
+## Overall Statistics
+##                                           
+##                Accuracy : 0.9924          
+##                  95% CI : (0.9898, 0.9944)
+##     No Information Rate : 0.2845          
+##     P-Value [Acc &gt; NIR] : &lt; 2.2e-16       
+##                                           
+##                   Kappa : 0.9903          
+##  Mcnemar's Test P-Value : NA              
+## 
+## Statistics by Class:
+## 
+##                      Class: A Class: B Class: C Class: D Class: E
+## Sensitivity            0.9976   0.9895   0.9883   0.9865   0.9963
+## Specificity            0.9986   0.9968   0.9963   0.9992   0.9996
+## Pos Pred Value         0.9964   0.9869   0.9826   0.9958   0.9981
+## Neg Pred Value         0.9990   0.9975   0.9975   0.9974   0.9992
+## Prevalence             0.2845   0.1935   0.1743   0.1638   0.1839
+## Detection Rate         0.2838   0.1915   0.1723   0.1616   0.1832
+## Detection Prevalence   0.2848   0.1941   0.1754   0.1623   0.1835
+## Balanced Accuracy      0.9981   0.9932   0.9923   0.9929   0.9979</code></pre>
 <p>From the confusion matrix, we can see that the model produces very accurate predictions for the class of dumbbell exercise. Below is code using linear discriminant analyis. Notice that this model does not produce nearly as accurate results as the random forest model produced earlier.</p>
-<pre class="r"><code>#set.seed(1234)
-#modFitlda &lt;- train(classe ~ .,data=training,method=&quot;lda&quot;, trControl = cv)
-#prediction_lda &lt;- predict(modFitlda, newdata = testing)
-#confusionMatrix(prediction_lda, testing$classe)$overall</code></pre>
+<pre class="r"><code>set.seed(1234)
+modFitlda &lt;- train(classe ~ .,data=training,method=&quot;lda&quot;, trControl = cv)</code></pre>
+<pre><code>## Loading required package: MASS</code></pre>
+<pre class="r"><code>prediction_lda &lt;- predict(modFitlda, newdata = testing)
+confusionMatrix(prediction_lda, testing$classe)$overall</code></pre>
+<pre><code>##       Accuracy          Kappa  AccuracyLower  AccuracyUpper   AccuracyNull 
+##   6.988955e-01   6.190582e-01   6.869937e-01   7.105998e-01   2.844520e-01 
+## AccuracyPValue  McnemarPValue 
+##   0.000000e+00   5.270007e-61</code></pre>
 </div>
 <div id="conclusion" class="section level2">
 <h2>Conclusion</h2>
