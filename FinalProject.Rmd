@@ -1,0 +1,92 @@
+---
+title: "Machine Learning Algorithm to Predict Exercise Class"
+author: "D Risius"
+date: "March 4, 2016"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(knitr)
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Synopsis
+
+In this project, students were asked to develop a machine learning algorithm to predict results of a particular dumbell exercise data.  In the data, six young health participants performed one set of 10 repetitions of the Unilateral Dumbbell Biceps Curl in five different fashions: 
+
+* Class A: Exactly according to the specification.
+* Class B: Throwing the elbows to the front.
+* Class C: Lifting the dumbbell only halfway.
+* Class D: Lowering the dumbbell only halfway.
+* Class E: Throwing the hips to the front.
+
+The task for this this project was to use biometric data to predict the class of dumbell curl. In the analysis, a random forest algorithm was developed which predicted the correct class over 99 percent of the time. 
+
+## The Data
+
+The exercise data consisted of 160 columns with over 19,000 observations.  The data contained only 52 columns used as predictors after deleting empty columns and adminstrative data.  To clean and 'tidy' the data, the following code was used.   
+
+```{r data, results='hide'}
+library(caret)
+##Download test and validation data sets #####
+setwd("~/Data_Science_Specialization/8_MachineLearning/FinalProject/")
+if (!file.exists("data")) {
+        dir.create("data")
+}
+# urlTrain <- "https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv"
+# urlValid <- "https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv"
+# download.file(urlTrain, destfile = "./data/training.csv")
+# download.file(urlTest, destfile = "./data/Valid.csv")
+
+# list.files("./data")
+
+#read the files note the validation file is used later to answer questions in a  quiz:
+data <- read.csv("./data/training.csv")
+valid <- read.csv("./data/Valid.csv")
+```
+
+Next, the data were seperated into a test and training sets and pre-processed to make it ready for modelling.
+
+```{r}
+inTrain <- createDataPartition(y=data$classe,
+                               p=0.7, list=FALSE)
+training <- data[inTrain,]
+testing <- data[-inTrain,]
+dim(training); dim(testing)
+
+## Pre-processing
+# Get rid of empty or almost completely empty columns (and also the non-predictors)
+columns <- c(8:11, 37:49,60:68,84:86, 102, 113:124,140,151:160)
+training <- training[,columns]
+testing <- testing[,columns]
+#colnames(training) #note column 53 is the classe.
+#Test if there are any missing values we need to impute
+sum(complete.cases(training)) - length(training$roll_belt) #no
+```
+
+After pre-processing, the data sets contained the 'classe' variable and 52 predictors.  These 52 predictors are used to build a model for predicting class.
+
+## Running the Model
+
+Several models were considered and run for this analysis including linear discriminant analysis (lda), Recursive Partitioning and Regression Trees (rpart), boosting (nba), and generalized linear models (glm), and random forests (rf).  After building the model, each used to predict the class on the test data produced in data preprocessing.  In the end, a random forest (rf) alorithm proved to be the most effective with a prediction accuracy on the test set of 99 percent.  This is a much better than the other methods used which provided from as low 40 percent to 70 percent accuracies.  The code below shows how the model was produced and the accuracy output.  In an attempt to tune the amount of bias in the model and improve accuracy, k-fold cross-validation with a k of 3 was used.  Although this increases the prediction power of our model, it is very computationally intensive to create.  On a PC with an Intel I3 processor, each of these models took several minutes to compute.
+
+```{r model1}
+set.seed(1234)
+cv <- trainControl(method="cv", number=3)
+modFitRf <- train(classe~.,data=training, method="rf", trControl=cv, verbose=F)
+prediction_rf <- predict(modFitRf,newdata=testing)
+confusionMatrix(predictions,testing$classe)
+```
+
+From the confusion matrix, we can see that the model produces very accurate predictions for the class of dumbbell exercise.  Below is code using linear discriminant analyis.  Notice that this model does not produce nearly as accurate results as the random forest model produced earlier.
+
+```{r model2}
+set.seed(1234)
+modFitlda <- train(classe ~ .,data=training,method="lda", trControl = cv)
+prediction_lda <- predict(modFitlda, newdata = testing)
+confusionMatrix(prediction_lda, testing$classe)$overall
+```
+
+## Conclusion
+
+In this project, we were able to fit a model that predicts with over 99 percent accuracy the class of dumbell exercises given a series of movements.  A random forest model proved to be the most accurate model, however it was also computationally intensive and may take a long time if the number of variables increases greatly.
